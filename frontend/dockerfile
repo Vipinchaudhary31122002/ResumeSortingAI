@@ -5,7 +5,7 @@ FROM node:23-slim
 WORKDIR /frontend
 
 # Copy only package files to leverage caching
-COPY package*.json ./
+# COPY package*.json ./
 
 # Install dependencies (adjust as needed for dev/prod)
 # RUN npm install --omit=dev
