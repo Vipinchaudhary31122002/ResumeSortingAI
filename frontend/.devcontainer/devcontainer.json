@@ -9,7 +9,11 @@
             "extensions": [
                 "esbenp.prettier-vscode",
                 "christian-kohler.path-intellisense",
-                "oderwat.indent-rainbow"
+                "oderwat.indent-rainbow",
+                "xabikos.JavaScriptSnippets",
+                "bradlc.vscode-tailwindcss",
+                "ecmel.vscode-html-css",
+                "dsznajder.es7-react-js-snippets"
             ]
         }
     }
