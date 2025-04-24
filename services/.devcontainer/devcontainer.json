@@ -1,0 +1,19 @@
+{
+    "name": "AIServices",
+    "build": {
+        "dockerfile": "../dockerfile",
+        "context": ".."
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                // "ms-python.python",
+                // "esbenp.prettier-vscode",
+                // "ms-toolsai.jupyter",
+                // "christian-kohler.path-intellisense",
+                // "mechatroner.rainbow-csv",
+                // "oderwat.indent-rainbow"
+            ]
+        }
+    }
+}
