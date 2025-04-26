@@ -79,10 +79,10 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto flex flex-col space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-4xl font-bold">Resume Dashboard</h2>
+          <h2 className="text-4xl font-bold">Job Batch Analysis</h2>
           <button
             onClick={downloadCSV}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition"
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition cursor-pointer"
           >
             Download CSV
           </button>
@@ -99,7 +99,7 @@ export default function DashboardPage() {
                 <th className="px-6 py-4 font-semibold text-lg">Skills</th>
                 <th className="px-6 py-4 font-semibold text-lg">JD Score</th>
                 <th className="px-6 py-4 font-semibold text-lg">ATS Score</th>
-                <th className="px-6 py-4"></th> {/* No heading for buttons */}
+                <th className="px-6 py-4"></th>
               </tr>
             </thead>
             <tbody>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                   <td className="px-6 py-4">{r.ats_score}%</td>
                   <td className="px-6 py-4">
                       <button
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 px-4 rounded-full transition"
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 px-4 rounded-full transition cursor-pointer"
                         onClick={() => openModal(r)}
                       >
                         View Details
@@ -168,13 +168,13 @@ export default function DashboardPage() {
             <div className="flex justify-between items-center">
               <button
                 onClick={closeModal}
-                className="bg-red-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-red-700 transition"
+                className="bg-red-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-red-700 transition cursor-pointer"
               >
                 Close
               </button>
               <button
                 onClick={() => window.open(currentResume.resumeLink, "_blank")}
-                className="bg-green-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-700 transition"
+                className="bg-green-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-700 transition cursor-pointer"
               >
                 Open Resume
               </button>
