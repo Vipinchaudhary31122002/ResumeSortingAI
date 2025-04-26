@@ -1,18 +1,18 @@
-{
-    "name": "Backend",
-    "build": {
-        "dockerfile": "../dockerfile",
-        "context": ".."
-    },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-ossdata.vscode-postgresql",
-                "oderwat.indent-rainbow",
-                "christian-kohler.npm-intellisense",
-                "esbenp.prettier-vscode",
-                "rangav.vscode-thunder-client"
-            ]
-        }
-    }
-}
+// {
+//     "name": "Backend",
+//     "build": {
+//         "dockerfile": "../dockerfile",
+//         "context": ".."
+//     },
+//     "customizations": {
+//         "vscode": {
+//             "extensions": [
+//                 "ms-ossdata.vscode-postgresql",
+//                 "oderwat.indent-rainbow",
+//                 "christian-kohler.npm-intellisense",
+//                 "esbenp.prettier-vscode",
+//                 "rangav.vscode-thunder-client"
+//             ]
+//         }
+//     }
+// }

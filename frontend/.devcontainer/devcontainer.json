@@ -1,20 +1,20 @@
-{
-    "name": "Frontend",
-    "build": {
-        "dockerfile": "../dockerfile",
-        "context": ".."
-    },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "esbenp.prettier-vscode",
-                "christian-kohler.path-intellisense",
-                "oderwat.indent-rainbow",
-                "xabikos.JavaScriptSnippets",
-                "bradlc.vscode-tailwindcss",
-                "ecmel.vscode-html-css",
-                "dsznajder.es7-react-js-snippets"
-            ]
-        }
-    }
-}
+// {
+//     "name": "Frontend",
+//     "build": {
+//         "dockerfile": "../dockerfile",
+//         "context": ".."
+//     },
+//     "customizations": {
+//         "vscode": {
+//             "extensions": [
+//                 "esbenp.prettier-vscode",
+//                 "christian-kohler.path-intellisense",
+//                 "oderwat.indent-rainbow",
+//                 "xabikos.JavaScriptSnippets",
+//                 "bradlc.vscode-tailwindcss",
+//                 "ecmel.vscode-html-css",
+//                 "dsznajder.es7-react-js-snippets"
+//             ]
+//         }
+//     }
+// }
