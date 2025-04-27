@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Navbar from "@/components/Navbar";
 
-export default function UploadPage() {
+export default function DashboardPage() {
   const [projectTitle, setProjectTitle] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [resumesZip, setResumesZip] = useState(null);

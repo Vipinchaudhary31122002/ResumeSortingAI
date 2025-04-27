@@ -8,7 +8,7 @@ import SignupForm from "../components/SignupForm";
 export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);
   const [isSignupMode, setIsSignupMode] = useState(false);
 

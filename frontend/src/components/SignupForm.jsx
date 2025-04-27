@@ -40,22 +40,22 @@ export default function SignupForm({ switchToLogin }) {
             placeholder="Enter your password"
           />
         </div>
-
+        {error && <p className="text-red-500 text-sm">{error}</p>}
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition cursor-pointer"
           disabled={loading}
+          className={`w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
           {loading ? "Signing up..." : "Sign Up"}
         </button>
-        {error && <p className="text-red-500 text-center">{error}</p>}
       </form>
-
-      <p className="text-sm text-center text-gray-600">
+      <p className="text-center text-sm text-gray-600">
         Already have an account?{" "}
         <button
           onClick={switchToLogin}
-          className="text-blue-600 font-semibold hover:underline cursor-pointer"
+          className="font-medium text-blue-600 hover:text-blue-500"
         >
           Login
         </button>
