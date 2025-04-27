@@ -1,7 +1,7 @@
 import { pgTable, uuid, varchar, text, integer, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
-export const job_batches = pgTable('resume_batches', {
+export const job_batches = pgTable('job_batches', {
   id: uuid('id').defaultRandom().primaryKey(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   user_id: uuid('user_id').references(() => users.id).defaultRandom(),

@@ -11,13 +11,3 @@ catch{
   console.error("❌ PostgreSQL connection failed:", err);
 
 }
-
-// connectDB()
-//   .then(() => {
-//     app.listen(BACKEND_PORT, () => {
-//       console.log(`🚀 Server is running at http://localhost:${BACKEND_PORT}`);
-//     });
-//   })
-//   .catch((err) => {
-//     console.error("❌ PostgreSQL connection failed:", err);
-//   });

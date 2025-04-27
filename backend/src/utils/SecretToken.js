@@ -12,23 +12,24 @@ export const sendToken = (user, statusCode, res) => {
     const token = jwt.sign({ id: user.id }, SECRET_TOKEN_KEY, {
       expiresIn: `${cookieExpireDays}d`,
     });
-
     const cookieExpireTime = cookieExpireDays * 24 * 60 * 60 * 1000;
     const expirationDate = new Date(Date.now() + cookieExpireTime);
 
     const cookieOptions = {
       httpOnly: true,
       expires: expirationDate,
+      sameSite: 'strict'
     };
-
     res
       .status(statusCode)
       .cookie("token", token, cookieOptions)
       .json({
         success: true,
-        user: { userid: user.id, username: user.username },
-        message: "Token successfully delivered to client",
+        user: { userid: user.id, email: user.email},
+        message: "Token successfully added in response",
+        
       });
+      return token
   } catch (error) {
     console.error("sendToken error:", error);
     res.status(500).json({

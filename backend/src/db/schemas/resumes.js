@@ -1,14 +1,13 @@
-// src/db/schemas/resumes.js
-import { pgTable, varchar, uuid, text, integer, json, array } from 'drizzle-orm/pg-core';
-import { resume_batches } from './resumeBatches.js';
+import { pgTable, varchar, uuid, text, integer, json } from 'drizzle-orm/pg-core';
+import { job_batches } from './job_batches.js';
 
 export const resumes = pgTable('resumes', {
   id: varchar('id', { length: 255 }).primaryKey(),
-  batch_id: uuid('batch_id').references(() => resume_batches.id).defaultRandom().notNull(),
+  batch_id: uuid('batch_id').references(() => job_batches.id).defaultRandom().notNull(),
   name: varchar('name', { length: 255 }).notNull().default(''),
   email: varchar('email', { length: 255 }).default(''),
   phone: varchar('phone', { length: 255 }).default(''),
-  skills: array(varchar('skills', { length: 255 })), // Array of strings
+  skills: json('skills'), // save skills array as JSON
   experience: json('experience'),
   education: json('education'),
   certification: json('certification'),

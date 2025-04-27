@@ -3,7 +3,7 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import unzipper from "unzipper";
 import { db } from "../db/connectdb.js";
-import { resume_batches } from "../db/schemas/resume_batches.js";
+import { job_batches } from "../db/schemas/job_batches.js";
 import { resumes } from "../db/schemas/resumes.js";
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY } from "../constants.js";
@@ -30,8 +30,8 @@ export const CreateJobBatch = async (req, res) => {
     // 1. Check for duplicate job_title
     const existingBatch = await db
       .select()
-      .from(resume_batches)
-      .where(resume_batches.job_title.eq(job_title));
+      .from(job_batches)
+      .where(job_batches.job_title.eq(job_title));
 
     if (existingBatch.length > 0) {
       return res.status(409).json({
@@ -42,7 +42,7 @@ export const CreateJobBatch = async (req, res) => {
 
     // 2. Create new batch
     const batchId = uuidv4();
-    await db.insert(resume_batches).values({
+    await db.insert(job_batches).values({
       id: batchId,
       job_title,
       job_description,
@@ -111,9 +111,9 @@ export const CreateJobBatch = async (req, res) => {
 
     // 5. Update batch with resume count
     await db
-      .update(resume_batches)
+      .update(job_batches)
       .set({ resume_count: resumeCount })
-      .where(resume_batches.id.eq(batchId));
+      .where(job_batches.id.eq(batchId));
 
     res.status(201).json({
       success: true,
@@ -200,10 +200,10 @@ export const ProcessBatch = async (req, res) => {
 
     const csvUrl = urlData.publicUrl;
 
-    // Step 6: Update resume_batches with csv_url
-    await db.update(resume_batches)
+    // Step 6: Update job_batches with csv_url
+    await db.update(job_batches)
       .set({ csv_url: csvUrl })
-      .where(resume_batches.id.eq(batchId));
+      .where(job_batches.id.eq(batchId));
 
     res.status(200).json({ message: 'Batch processed and CSV uploaded.', csvUrl });
   } catch (err) {
