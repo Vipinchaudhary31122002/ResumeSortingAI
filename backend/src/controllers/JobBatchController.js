@@ -138,6 +138,7 @@ export const CreateJobBatch = async (req, res, next) => {
     // Pass batchId and extractPath to the next middleware
     req.batchId = batchId;
     req.extractPath = extractPath;
+    req.job_description = job_description;
     next();
   } catch (error) {
     console.error("❌ Error in CreateJobBatch:", error);
@@ -152,14 +153,9 @@ export const CreateJobBatch = async (req, res, next) => {
 // Process Job Batch
 export const ProcessBatch = async (req, res) => {
   try {
-    const { batchId, extractPath } = req;
-    if (!batchId || !extractPath) {
-      return res.status(400).json({
-        success: false,
-        message: "Batch ID and extract path are required",
-      });
-    }
+    const { batchId, extractPath, job_description } = req;
 
+    // 2. Read PDF files from extractPath
     const pdfFiles = fs
       .readdirSync(extractPath)
       .filter((file) => file.toLowerCase().endsWith(".pdf"));
@@ -171,28 +167,27 @@ export const ProcessBatch = async (req, res) => {
       });
     }
 
-    // Process each resume one by one
+    // 3. Process each resume
     for (const pdfFile of pdfFiles) {
       const pdfPath = path.join(extractPath, pdfFile);
 
-      // Upload to Supabase and get details
+      // Upload PDF to Supabase
       const { resumeId, publicUrl } = await uploadFileToSupabase(
         pdfPath,
         batchId,
         req.userdata.userId
       );
 
-      // Prepare payload for Python server
-      const resumeData = {
-        id: resumeId,
-        url: publicUrl,
+      // 4. Prepare payload for Python server
+      const payload = {
+        job_description: job_description,
+        resume_url: publicUrl,
       };
 
-      // Send resume to Python server for parsing
-      const pythonServerUrl = "http://localhost:8000/parse-resume"; // Replace with your Python server URL
+      // 5. Call Python server
       const { data: parsedData } = await axios.post(
-        pythonServerUrl,
-        resumeData
+        "http://localhost:8000/generate-report",
+        payload
       );
 
       const {
@@ -203,50 +198,32 @@ export const ProcessBatch = async (req, res) => {
         experience,
         education,
         certification,
-      } = parsedData;
-
-      const updateData = {};
-
-      if (name !== undefined) updateData.name = name;
-      if (email !== undefined) updateData.email = email;
-      if (phone !== undefined) updateData.phone = phone;
-
-      // Ensure skills is a valid JSON array
-      if (skills !== undefined) {
-        // Check if it's already an array, if not, parse it
-        updateData.skills = Array.isArray(skills) ? skills : JSON.parse(skills);
-      }
-
-      if (experience !== undefined) updateData.experience = experience;
-      if (education !== undefined) updateData.education = education;
-      if (certification !== undefined) updateData.certification = certification;
-
-      // Update if there's anything to update
-      if (Object.keys(updateData).length > 0) {
-        await db
-          .update(resumes)
-          .set(updateData)
-          .where(eq(resumes.id, resumeId));
-      }
-
-      // Update resume record with parsed data
+        jd_score,
+        ats_score,
+        keyword_match,
+      } = parsedData.report;
+      // 6. Update Resume record in DB
       await db
         .update(resumes)
         .set({
-          name,
-          email,
-          phone,
-          skills: Array.isArray(skills) ? skills : JSON.parse(skills), // Ensure skills is an array
-          experience,
-          education,
-          certification,
+          name: name || "",
+          email: email || "",
+          phone: phone || "",
+          skills: skills || "",
+          experience: experience || "",
+          education: education || "",
+          certification: certification || "",
+          jd_score: jd_score || 0,
+          ats_score: ats_score || 0,
+          keyword_match: keyword_match || 0,
+          resume_url: publicUrl,
         })
         .where(eq(resumes.id, resumeId));
 
       console.log(`✅ Resume ${resumeId} processed successfully`);
     }
 
-    // Clean up extracted files
+    // 7. Clean up
     fs.rmSync(extractPath, { recursive: true, force: true });
 
     return res.status(200).json({
@@ -274,7 +251,7 @@ export const GetJobBatch = async (req, res) => {
         id: job_batches.id,
         created_at: job_batches.created_at,
         job_title: job_batches.job_title,
-        csv_url: job_batches.csv_url
+        csv_url: job_batches.csv_url,
       })
       .from(job_batches)
       .where(eq(job_batches.user_id, userId));
