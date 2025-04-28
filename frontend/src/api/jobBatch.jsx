@@ -3,51 +3,60 @@ import axios from 'axios';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
+const axiosInstance = axios.create({
+  baseURL: BASE_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'multipart/form-data',
+  },
+});
+
 export function useJobBatch() {
   const uploadBatch = async (formData) => {
     try {
-      const response = await axios.post(
-        `${BASE_URL}/uploadjobbatch`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          withCredentials: true
-        }
-      );
+      const response = await axiosInstance.post('/jobbatch/uploadjobbatch', formData);
       return response.data;
     } catch (error) {
-      throw error.response?.data?.message || 'Error uploading batch';
+      throw new Error(error.response?.data?.message || 'Error uploading batch');
+    }
+  };
+
+  const getUserBatches = async () => {
+    try {
+      // Use JSON content type for this request
+      const response = await axios.get(`${BASE_URL}/jobbatch/batches`, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Error fetching job batches');
     }
   };
 
   const getBatchStatus = async (batchId) => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/batch/${batchId}/status`,
-        { withCredentials: true }
-      );
+      const response = await axiosInstance.get(`/jobbatch/batch/${batchId}/status`);
       return response.data;
     } catch (error) {
-      throw error.response?.data?.message || 'Error getting batch status';
+      throw new Error(error.response?.data?.message || 'Error getting batch status');
     }
   };
 
   const getBatchResults = async (batchId) => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/batch/${batchId}/results`,
-        { withCredentials: true }
-      );
+      const response = await axiosInstance.get(`/jobbatch/batch/${batchId}/results`);
       return response.data;
     } catch (error) {
-      throw error.response?.data?.message || 'Error getting batch results';
+      throw new Error(error.response?.data?.message || 'Error getting batch results');
     }
   };
 
   return {
     uploadBatch,
+    getUserBatches,
     getBatchStatus,
     getBatchResults
   };

@@ -9,7 +9,6 @@ import { eq } from "drizzle-orm";
 export const Signup = async (req, res) => {
   try {
     const { email, password} = req.body;
-    
     // Check if user already exists
     const existingUser = await db.select().from(users).where(eq(users.email, email));
     if (existingUser.length > 0) {
@@ -50,6 +49,7 @@ export const Login = async (req, res) => {
     const foundUser = await db.select().from(users).where(eq(users.email, email));
     const user = foundUser[0];
     if (!user) return res.status(400).json({ message: "Incorrect email" });
+
     // Compare password
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) return res.status(400).json({ message: "Incorrect password" });

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/api/auth"; 
 import { useAppSelector } from '@/store/hooks';
@@ -8,7 +8,12 @@ export default function Navbar() {
   const router = useRouter();
   const { logout, loading, error } = useAuth(); 
   const [logoutError, setLogoutError] = useState(null);
+  const [mounted, setMounted] = useState(false);
   const email = useAppSelector((state) => state.user.email);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -19,6 +24,25 @@ export default function Navbar() {
       setLogoutError(err.message || "Something went wrong while logging out");
     }
   };
+
+  // Prevent hydration errors by only showing content after mounting
+  if (!mounted) {
+    return (
+      <nav className="flex items-center justify-between bg-white rounded-lg shadow-lg w-full max-w-screen-xxl mx-auto p-2">
+        <div className="text-xl font-extrabold text-black">
+          Welcome
+        </div>
+        <div className="flex items-center">
+          <button
+            disabled
+            className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg opacity-50 cursor-not-allowed"
+          >
+            Loading...
+          </button>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="flex items-center justify-between bg-white rounded-lg shadow-lg w-full max-w-screen-xxl mx-auto p-2">

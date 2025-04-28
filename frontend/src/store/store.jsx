@@ -4,6 +4,10 @@ import userReducer from './userSlice';
 
 // Load state from localStorage
 const loadState = () => {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
   try {
     const serializedState = localStorage.getItem('reduxState');
     if (serializedState === null) {
@@ -18,6 +22,10 @@ const loadState = () => {
 
 // Save state to localStorage
 const saveState = (state) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   try {
     const serializedState = JSON.stringify(state);
     localStorage.setItem('reduxState', serializedState);
@@ -26,17 +34,24 @@ const saveState = (state) => {
   }
 };
 
-// Create store with persisted state
-const store = configureStore({
-  reducer: {
-    user: userReducer,
-  },
-  preloadedState: loadState(),
-});
+// Create store factory function
+export const makeStore = () => {
+  const store = configureStore({
+    reducer: {
+      user: userReducer,
+    },
+    preloadedState: loadState(),
+  });
 
-// Subscribe to store changes and save to localStorage
-store.subscribe(() => {
-  saveState(store.getState());
-});
+  // Subscribe to store changes and save to localStorage
+  if (typeof window !== 'undefined') {
+    store.subscribe(() => {
+      saveState(store.getState());
+    });
+  }
 
-export default store;
+  return store;
+};
+
+// Create store instance if we're on the client side
+export const store = typeof window !== 'undefined' ? makeStore() : null;
