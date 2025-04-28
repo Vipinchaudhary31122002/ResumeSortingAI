@@ -264,3 +264,32 @@ export const ProcessBatch = async (req, res) => {
     });
   }
 };
+
+export const GetJobBatch = async (req, res) => {
+  try {
+    const userId = req.userdata.userId;
+
+    const jobBatches = await db
+      .select({
+        id: job_batches.id,
+        created_at: job_batches.created_at,
+        job_title: job_batches.job_title,
+        csv_url: job_batches.csv_url
+      })
+      .from(job_batches)
+      .where(eq(job_batches.user_id, userId));
+
+    if (jobBatches.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No job batches found for this user." });
+    }
+
+    res.status(200).json({ jobBatches });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while fetching job batches." });
+  }
+};

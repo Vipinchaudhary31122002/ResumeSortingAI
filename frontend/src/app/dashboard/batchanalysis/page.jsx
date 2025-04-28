@@ -1,40 +1,40 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { getAllResumesByBatch } from "@/api/resumes";
 
 export default function DashboardPage() {
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // To control the off-canvas modal
-  const [currentResume, setCurrentResume] = useState(null); // Store the details of the selected resume
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentResume, setCurrentResume] = useState(null);
+  const searchParams = useSearchParams();
+  const batchId = searchParams.get("id");
 
-  // Sample resume data
   useEffect(() => {
-    const mockData = [
-      {
-        name: "Alice Johnson",
-        email: "alice@example.com",
-        phone: "1234567890",
-        skills: ["python", "sql"],
-        jd_score: "78.5",
-        ats_score: "84.3",
-        experience: "5 years",
-        education: "B.Sc in Computer Science",
-        resumeLink: "https://example.com/resume/alice.pdf", // Link to resume file
-      },
-      {
-        name: "Bob Smith",
-        email: "bob@example.com",
-        phone: "9876543210",
-        skills: ["java", "communication"],
-        jd_score: "68.0",
-        ats_score: "72.0",
-        experience: "3 years",
-        education: "B.A in Communications",
-        resumeLink: "https://example.com/resume/bob.pdf",
-      },
-    ];
-    setResumes(mockData);
-  }, []);
+    const fetchResumes = async () => {
+      setLoading(true);
+      try {
+        if (batchId) {
+          const resumesData = await getAllResumesByBatch(batchId);
+          
+          // Log the fetched data to check the format
+          console.log("Fetched Resumes Data: ", resumesData);
+
+          // Ensure resumesData is an array
+          setResumes(Array.isArray(resumesData.resumes) ? resumesData.resumes : []);
+        }
+      } catch (error) {
+        console.error(error);
+        setResumes([]); // Set empty array in case of error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResumes();
+  }, [batchId]);
 
   const downloadCSV = () => {
     const csvContent = [
@@ -43,17 +43,15 @@ export default function DashboardPage() {
         r.name,
         r.email,
         r.phone,
-        r.skills.join(", "),
+        Array.isArray(r.skills) ? r.skills.join(", ") : r.skills,
         r.jd_score,
         r.ats_score,
       ]),
     ]
       .map((e) => e.join(","))
       .join("\n");
-
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.href = url;
     link.download = "resumes_dashboard.csv";
@@ -62,13 +60,11 @@ export default function DashboardPage() {
     document.body.removeChild(link);
   };
 
-  // Function to open modal with resume details
   const openModal = (resume) => {
     setCurrentResume(resume);
     setIsModalOpen(true);
   };
 
-  // Function to close modal
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentResume(null);
@@ -88,83 +84,91 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
-          <table className="min-w-full text-sm text-gray-700">
-            <thead className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-left">
-              <tr>
-                <th className="px-6 py-4 font-semibold text-lg">Name</th>
-                <th className="px-6 py-4 font-semibold text-lg">Email</th>
-                <th className="px-6 py-4 font-semibold text-lg">Phone</th>
-                <th className="px-6 py-4 font-semibold text-lg">Skills</th>
-                <th className="px-6 py-4 font-semibold text-lg">JD Score</th>
-                <th className="px-6 py-4 font-semibold text-lg">ATS Score</th>
-                <th className="px-6 py-4"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {resumes.map((r, index) => (
-                <tr key={index} className="border-b hover:bg-gray-100">
-                  <td className="px-6 py-4">{r.name}</td>
-                  <td className="px-6 py-4">{r.email}</td>
-                  <td className="px-6 py-4">{r.phone}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      {r.skills.map((skill, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">{r.jd_score}%</td>
-                  <td className="px-6 py-4">{r.ats_score}%</td>
-                  <td className="px-6 py-4">
+        {/* Table or Loading */}
+        {loading ? (
+          <div className="text-center py-8 text-gray-400">
+            Loading resumes...
+          </div>
+        ) : resumes.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            No resumes found.
+          </div>
+        ) : (
+          <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
+            <table className="min-w-full text-sm text-gray-700">
+              <thead className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-left">
+                <tr>
+                  <th className="px-6 py-4 font-semibold text-lg">Name</th>
+                  <th className="px-6 py-4 font-semibold text-lg">Email</th>
+                  <th className="px-6 py-4 font-semibold text-lg">Phone</th>
+                  <th className="px-6 py-4 font-semibold text-lg">JD Score</th>
+                  <th className="px-6 py-4 font-semibold text-lg">ATS Score</th>
+                  <th className="px-6 py-4"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {resumes.map((r, index) => (
+                  <tr key={index} className="border-b hover:bg-gray-100">
+                    <td className="px-6 py-4">{r.name}</td>
+                    <td className="px-6 py-4">{r.email}</td>
+                    <td className="px-6 py-4">{r.phone}</td>
+                    <td className="px-6 py-4">{r.jd_score}%</td>
+                    <td className="px-6 py-4">{r.ats_score}%</td>
+                    <td className="px-6 py-4">
                       <button
                         className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 px-4 rounded-full transition cursor-pointer"
                         onClick={() => openModal(r)}
                       >
                         View Details
                       </button>
-                  </td>
-                </tr>
-              ))}
-              {resumes.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="px-6 py-10 text-center text-gray-400">
-                    No resumes uploaded yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Off-canvas modal for "View Details" */}
-      {isModalOpen && (
+      {/* Modal */}
+      {isModalOpen && currentResume && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
           <div className="bg-white rounded-lg w-full md:w-3/4 lg:w-2/3 xl:w-1/2 p-8 shadow-lg overflow-y-auto">
-            <h3 className="text-3xl font-semibold mb-4 text-black">{currentResume.name}</h3>
-            <p className="text-lg mb-2 text-black">Email: {currentResume.email}</p>
-            <p className="text-lg mb-2 text-black">Phone: {currentResume.phone}</p>
-            <p className="text-lg mb-2 text-black">Experience: {currentResume.experience}</p>
-            <p className="text-lg mb-2 text-black">Education: {currentResume.education}</p>
-            <p className="text-lg mb-2 text-black">Skills:{" "}
-              {currentResume.skills.map((skill, idx) => (
+            <h3 className="text-3xl font-semibold mb-4 text-black">
+              {currentResume.name}
+            </h3>
+            <p className="text-lg mb-2 text-black">
+              Email: {currentResume.email}
+            </p>
+            <p className="text-lg mb-2 text-black">
+              Phone: {currentResume.phone}
+            </p>
+            <p className="text-lg mb-2 text-black">
+              Experience: {currentResume.experience}
+            </p>
+            <p className="text-lg mb-2 text-black">
+              Education: {currentResume.education}
+            </p>
+            {/* <p className="text-lg mb-2 text-black">
+              Skills:{" "}
+              {(Array.isArray(currentResume.skills)
+                ? currentResume.skills
+                : currentResume.skills?.split(",")
+              ).map((skill, idx) => (
                 <span
                   key={idx}
                   className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mr-2"
                 >
-                  {skill}
+                  {skill.trim()}
                 </span>
               ))}
+            </p> */}
+            <p className="text-lg mb-2 text-black">
+              JD Score: {currentResume.jd_score}%
             </p>
-            <p className="text-lg mb-2 text-black">JD Score: {currentResume.jd_score}%</p>
-            <p className="text-lg mb-4 text-black">ATS Score: {currentResume.ats_score}%</p>
+            <p className="text-lg mb-4 text-black">
+              ATS Score: {currentResume.ats_score}%
+            </p>
             <div className="flex justify-between items-center">
               <button
                 onClick={closeModal}
@@ -172,12 +176,16 @@ export default function DashboardPage() {
               >
                 Close
               </button>
-              <button
-                onClick={() => window.open(currentResume.resumeLink, "_blank")}
-                className="bg-green-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-700 transition cursor-pointer"
-              >
-                Open Resume
-              </button>
+              {currentResume.resumeLink && (
+                <button
+                  onClick={() =>
+                    window.open(currentResume.resumeLink, "_blank")
+                  }
+                  className="bg-green-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-700 transition cursor-pointer"
+                >
+                  Open Resume
+                </button>
+              )}
             </div>
           </div>
         </div>

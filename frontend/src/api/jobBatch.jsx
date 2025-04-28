@@ -1,7 +1,7 @@
 'use client';
 import axios from 'axios';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1/jobbatch';
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 export function useJobBatch() {
   const uploadBatch = async (formData) => {
     try {
-      const response = await axiosInstance.post('/jobbatch/uploadjobbatch', formData);
+      const response = await axiosInstance.post('/uploadjobbatch', formData);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error uploading batch');
@@ -23,8 +23,7 @@ export function useJobBatch() {
 
   const getUserBatches = async () => {
     try {
-      // Use JSON content type for this request
-      const response = await axios.get(`${BASE_URL}/jobbatch/batches`, {
+      const response = await axios.get(`${BASE_URL}/getjobbatches`, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',
