@@ -1,6 +1,6 @@
 import { db } from "../db/connectdb.js";
 import { resumes } from "../db/schemas/resumes.js";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export const GetAllResumes = async (req, res) => {
   try {

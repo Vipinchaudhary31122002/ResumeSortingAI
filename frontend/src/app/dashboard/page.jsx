@@ -160,7 +160,7 @@ export default function UploadPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 rounded-lg font-medium text-white ${
+                className={`w-full py-3 rounded-lg font-medium text-white cursor-pointer ${
                   loading
                     ? "bg-blue-400 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-700"

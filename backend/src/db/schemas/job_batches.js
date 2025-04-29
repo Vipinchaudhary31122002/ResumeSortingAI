@@ -7,5 +7,4 @@ export const job_batches = pgTable('job_batches', {
   user_id: uuid('user_id').references(() => users.id).notNull(),
   job_title: varchar('job_title', { length: 255 }).notNull(),
   job_description: text('job_description').notNull(),
-  csv_url: varchar('csv_url', { length: 255 }),
 });

@@ -4,14 +4,15 @@ import os from "os";
 import { v4 as uuidv4 } from "uuid";
 import unzipper from "unzipper";
 import mime from "mime-types";
+import axios from "axios";
+
 import { supabase } from "../utils/supabaseClient.js";
 import { db } from "../db/connectdb.js";
 import { job_batches } from "../db/schemas/job_batches.js";
 import { resumes } from "../db/schemas/resumes.js";
 import { eq } from "drizzle-orm";
-import axios from "axios";
 
-// Check for duplicate job titles
+// ✅ Check for duplicate job titles
 export async function checkDuplicateJobTitle(job_title) {
   const existing = await db
     .select()
@@ -20,7 +21,7 @@ export async function checkDuplicateJobTitle(job_title) {
   return existing.length > 0;
 }
 
-// Create a new job batch entry
+// ✅ Create a new job batch entry
 export async function createJobBatchEntry(job_title, job_description, userId) {
   const batchId = uuidv4();
   await db.insert(job_batches).values({
@@ -32,7 +33,7 @@ export async function createJobBatchEntry(job_title, job_description, userId) {
   return batchId;
 }
 
-// Extract ZIP file to a temporary directory
+// ✅ Extract ZIP file to a temporary directory
 export function extractZipToTemp(zipBuffer, batchId) {
   const extractPath = path.join(os.tmpdir(), batchId);
   fs.mkdirSync(extractPath, { recursive: true });
@@ -44,22 +45,52 @@ export function extractZipToTemp(zipBuffer, batchId) {
     fs.createReadStream(zipPath)
       .pipe(unzipper.Extract({ path: extractPath }))
       .on("close", () => {
-        fs.unlinkSync(zipPath);
+        fs.unlinkSync(zipPath); // delete zip after extraction
         resolve(extractPath);
       })
       .on("error", reject);
   });
 }
 
-// Upload file to Supabase and insert record into DB
+// DFS to find all PDF files in a directory (and subdirectories)
+async function findPdfFiles(directory) {
+  let pdfFiles = [];
+
+  const files = fs.readdirSync(directory);
+
+  for (const file of files) {
+    const filePath = path.join(directory, file);
+    const stat = fs.statSync(filePath);
+
+    if (stat.isDirectory()) {
+      // If it's a directory, recurse into it
+      const subDirFiles = await findPdfFiles(filePath);
+      pdfFiles = pdfFiles.concat(subDirFiles);
+    } else if (
+      stat.isFile() &&
+      path.extname(filePath).toLowerCase() === ".pdf"
+    ) {
+      // If it's a PDF file, add it to the list
+      pdfFiles.push(filePath);
+    }
+  }
+
+  return pdfFiles;
+}
+
+// ✅ Upload a file to Supabase and insert a DB record
 export async function uploadFileToSupabase(filePath, batchId, userId) {
+  const stat = fs.statSync(filePath);
+  if (stat.isDirectory()) {
+    throw new Error(`❌ Path is a directory, expected file: ${filePath}`);
+  }
+
   const fileContent = fs.readFileSync(filePath);
   const contentType = mime.lookup(filePath) || "application/octet-stream";
   const resumeId = uuidv4();
   const extension = path.extname(filePath) || ".pdf";
   const storageFilePath = `${batchId}/${resumeId}${extension}`;
 
-  // Upload to Supabase storage
   const { error: uploadError } = await supabase.storage
     .from("resumes")
     .upload(storageFilePath, fileContent, {
@@ -72,7 +103,6 @@ export async function uploadFileToSupabase(filePath, batchId, userId) {
     throw new Error("Error uploading resume");
   }
 
-  // Get public URL
   const { data: urlData, error: urlError } = supabase.storage
     .from("resumes")
     .getPublicUrl(storageFilePath);
@@ -84,7 +114,6 @@ export async function uploadFileToSupabase(filePath, batchId, userId) {
 
   const publicUrl = urlData.publicUrl;
 
-  // Insert resume record into DB
   await db.insert(resumes).values({
     id: resumeId,
     batch_id: batchId,
@@ -100,6 +129,7 @@ export async function uploadFileToSupabase(filePath, batchId, userId) {
   };
 }
 
+// ✅ Controller to handle job batch creation
 export const CreateJobBatch = async (req, res, next) => {
   try {
     const { job_title, job_description } = req.body;
@@ -124,18 +154,28 @@ export const CreateJobBatch = async (req, res, next) => {
       job_description,
       req.userdata.userId
     );
+
     const extractPath = await extractZipToTemp(zipFile.buffer, batchId);
 
-    const files = fs.readdirSync(extractPath);
+    // DFS to find all PDF files
+    const pdfFiles = await findPdfFiles(extractPath);
 
+    if (pdfFiles.length === 0) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "No PDF files found in the ZIP archive",
+        });
+    }
+
+    // Upload all PDF files
     await Promise.all(
-      files.map(async (file) => {
-        const filePath = path.join(extractPath, file);
-        await uploadFileToSupabase(filePath, batchId, req.userdata.userId);
-      })
+      pdfFiles.map((filePath) =>
+        uploadFileToSupabase(filePath, batchId, req.userdata.userId)
+      )
     );
 
-    // Pass batchId and extractPath to the next middleware
     req.batchId = batchId;
     req.job_description = job_description;
     next();
@@ -149,7 +189,7 @@ export const CreateJobBatch = async (req, res, next) => {
   }
 };
 
-// Process Job Batch
+// ✅ Process all resumes in a job batch
 export const ProcessBatch = async (req, res) => {
   try {
     const { batchId, job_description } = req;
@@ -219,6 +259,7 @@ export const ProcessBatch = async (req, res) => {
   }
 };
 
+// ✅ Get all job batches for current user
 export const GetJobBatch = async (req, res) => {
   try {
     const userId = req.userdata.userId;
@@ -228,7 +269,6 @@ export const GetJobBatch = async (req, res) => {
         id: job_batches.id,
         created_at: job_batches.created_at,
         job_title: job_batches.job_title,
-        csv_url: job_batches.csv_url,
       })
       .from(job_batches)
       .where(eq(job_batches.user_id, userId));
@@ -241,7 +281,7 @@ export const GetJobBatch = async (req, res) => {
 
     res.status(200).json({ jobBatches });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error in GetJobBatch:", error);
     res
       .status(500)
       .json({ message: "An error occurred while fetching job batches." });

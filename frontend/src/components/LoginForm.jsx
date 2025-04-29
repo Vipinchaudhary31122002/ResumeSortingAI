@@ -46,7 +46,7 @@ export default function LoginForm({ switchToSignup }) {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+          className={`w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer ${
             loading ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
@@ -57,7 +57,7 @@ export default function LoginForm({ switchToSignup }) {
         Don't have an account?{" "}
         <button
           onClick={switchToSignup}
-          className="font-medium text-indigo-600 hover:text-indigo-500"
+          className="font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer"
         >
           Sign up
         </button>
