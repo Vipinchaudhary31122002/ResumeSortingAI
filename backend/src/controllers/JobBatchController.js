@@ -137,7 +137,6 @@ export const CreateJobBatch = async (req, res, next) => {
 
     // Pass batchId and extractPath to the next middleware
     req.batchId = batchId;
-    req.extractPath = extractPath;
     req.job_description = job_description;
     next();
   } catch (error) {
@@ -153,38 +152,19 @@ export const CreateJobBatch = async (req, res, next) => {
 // Process Job Batch
 export const ProcessBatch = async (req, res) => {
   try {
-    const { batchId, extractPath, job_description } = req;
+    const { batchId, job_description } = req;
 
-    // 2. Read PDF files from extractPath
-    const pdfFiles = fs
-      .readdirSync(extractPath)
-      .filter((file) => file.toLowerCase().endsWith(".pdf"));
+    const allResumes = await db
+      .select({ resumeId: resumes.id, resumeUrl: resumes.resume_url })
+      .from(resumes)
+      .where(eq(resumes.batch_id, batchId));
 
-    if (pdfFiles.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No PDF files found in the extracted path",
-      });
-    }
-
-    // 3. Process each resume
-    for (const pdfFile of pdfFiles) {
-      const pdfPath = path.join(extractPath, pdfFile);
-
-      // Upload PDF to Supabase
-      const { resumeId, publicUrl } = await uploadFileToSupabase(
-        pdfPath,
-        batchId,
-        req.userdata.userId
-      );
-
-      // 4. Prepare payload for Python server
+    for (const { resumeId, resumeUrl } of allResumes) {
       const payload = {
         job_description: job_description,
-        resume_url: publicUrl,
+        resume_url: resumeUrl,
       };
 
-      // 5. Call Python server
       const { data: parsedData } = await axios.post(
         "http://localhost:8000/generate-report",
         payload
@@ -202,7 +182,7 @@ export const ProcessBatch = async (req, res) => {
         ats_score,
         keyword_match,
       } = parsedData.report;
-      // 6. Update Resume record in DB
+
       await db
         .update(resumes)
         .set({
@@ -216,21 +196,18 @@ export const ProcessBatch = async (req, res) => {
           jd_score: jd_score || 0,
           ats_score: ats_score || 0,
           keyword_match: keyword_match || 0,
-          resume_url: publicUrl,
+          resume_url: resumeUrl,
         })
         .where(eq(resumes.id, resumeId));
 
       console.log(`✅ Resume ${resumeId} processed successfully`);
     }
 
-    // 7. Clean up
-    fs.rmSync(extractPath, { recursive: true, force: true });
-
     return res.status(200).json({
       success: true,
       message: "Batch processed and resumes parsed successfully",
       batchId,
-      resumeCount: pdfFiles.length,
+      resumeCount: allResumes.length,
     });
   } catch (error) {
     console.error("❌ Error in ProcessBatch:", error);
