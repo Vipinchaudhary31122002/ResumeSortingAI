@@ -7,6 +7,11 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5000
+# Serve built frontend from /app/frontend (from mounted volume)
+# Your backend should statically serve from this directory
+# Example (Express):
+# app.use(express.static(path.join(__dirname, 'frontend')));
 
-CMD ["npm", "run", "dev"]
+EXPOSE 8080
+
+CMD ["npm", "start"]
