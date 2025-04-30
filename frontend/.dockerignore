@@ -1,0 +1,16 @@
+# Node modules (already installed during the build process)
+node_modules/
+
+# Logs
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build outputs (if not needed in the image)
+.next/
+dist/
+
+# IDE and OS-related files
+.vscode/
+.DS_Store
+*.log

@@ -1,0 +1,23 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+.env/
+
+# Package/build metadata
+*.egg-info/
+.eggs/
+
+# Logs
+*.log
+
+# Editor/OS files
+.vscode/
+.DS_Store
+
+# Build artifacts
+build/
+dist/

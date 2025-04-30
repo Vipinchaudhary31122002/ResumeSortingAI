@@ -25,6 +25,5 @@ app.use(cookieParser());
 app.use("/api/v1/auth", AuthRoute);
 app.use("/api/v1/jobbatch", JobBatch);
 app.use("/api/v1/resume", ResumeRoute);
-// app.use("/api/v1/csv", CsvRoute);
 
 export default app;

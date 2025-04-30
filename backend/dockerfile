@@ -1,14 +1,12 @@
-# # Use Node.js v22 slim image
-# FROM node:23-slim
+FROM node:23-slim
 
-# # Set working directory
-# WORKDIR /backend
+WORKDIR /app
 
-# # Copy only package files to leverage caching
-# COPY package*.json ./
+COPY package*.json ./
+RUN npm install
 
-# # Install dependencies (adjust as needed for dev/prod)
-# RUN npm install --omit=dev
+COPY . .
 
-# # Copy the rest of the application
-# COPY . .
+EXPOSE 5000
+
+CMD ["npm", "run", "dev"]
